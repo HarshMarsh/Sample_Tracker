@@ -1,0 +1,20 @@
+{
+    "id_num": {
+        "id": 72,
+        "kind": "pearl",
+        "name": "jason marsters",
+        "email": "jason@gmail.com",
+        "address": "123 example st, Test, USA",
+        "techs": [],
+        "tests": [
+            {
+                "type": 1,
+                "tech_name": "None",
+                "in_time": "None",
+                "out_time": "None",
+                "weight1(g)": 0,
+                "weight2(g)": 0
+            }
+        ]
+    }
+}
