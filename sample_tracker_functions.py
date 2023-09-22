@@ -2,8 +2,16 @@
 ##########################################################Stuff for setting up FireBase##################################################################################
 # pip3 install adafruit-circuitpython-thermal-printer
 # Import database module.
-
-
+import os
+from dotenv import load_dotenv, find_dotenv
+#user interface imports:
+import tkinter as tk
+from tkinter import *
+from tkinter import messagebox
+import pyrebase
+from firebase_admin import credentials
+import firebase_admin
+from firebase_admin import db
 import json
 
 #imports for label printer:
@@ -13,6 +21,12 @@ import adafruit_thermal_printer
 #Imports for recording check out/in times:
 import datetime
 import pytz
+
+#email stuff:
+import ssl
+import smtplib
+sender = 'sampletracker2023@gmail.com'
+receiver = "marshallfgarrett5@gmail.com"
 
 
 
@@ -53,11 +67,14 @@ def fill_sample_info(sample_id, sample_info_frame,mode):
     ref = db.reference("/sample_info")
     query_result = ref.order_by_child('id').equal_to(sample_id).get()
     # Loop through the query result (should contain only one product)
+    email_address = ""
+    test_data = {}
     for product_id, product_data in query_result.items():
        # print("customer address is: ",product_data['address'])
         #info keys are the keys to the dictionary data that needs to be printed
         info_keys =['kind','id','name',"email","address"]
-
+        email_address = product_data["email"]
+        test_data = product_data["tests"]
         #for each info key, retrieve it from db, and put it into the sample_info window
         for i in range(len(info_keys)):
             label_text = info_keys[i] + ": "+ str(product_data[info_keys[i]])
@@ -65,10 +82,57 @@ def fill_sample_info(sample_id, sample_info_frame,mode):
            # sample_info_labels.append(label)
             label.pack()
     if mode == 1:
-        email_btn = tk.Button(sample_info_frame, text= "email results",command= email_results)
+        email_btn = tk.Button(sample_info_frame, text= "email results",command= lambda:email_client_results(email_address,test_data))
         email_btn.pack()
 
+def email_client_results(email_addrr,test_data):
+    # get email password from .env file
+    load_dotenv(find_dotenv())
+    password = os.getenv("EMAIL_PASSWORD")
+    sender = os.getenv("sender_email")
+    receiver = email_addrr
 
+    print(email_addrr)
+    greeting = "Hello valued customer,\nYour test results are in!\n"
+    body = ""
+    ending = "\n\nThanks for using our facility,\nSample tracker"
+    for i in range(len(test_data)):
+        body = body + "\nResults for test " + str(i)
+        excluded_keys = ["in_time","out_time","tech_name","type"]
+        body = body + "\ntype:" + str(test_data[i]["type"])
+        for key,value in test_data[i].items():
+
+            if key not in excluded_keys:
+                body = body + "\n" + key + ": "+ str(value)
+    final_text = greeting + body + ending
+
+    smtp_port = 587  # Standard secure SMTP port
+    smtp_server = "smtp.gmail.com"  # Google SMTP Server
+
+    # Create context
+    simple_email_context = ssl.create_default_context()
+
+    try:
+        # Connect to the server
+       # print("Connecting to server...")
+        TIE_server = smtplib.SMTP(smtp_server, smtp_port)
+        TIE_server.starttls(context=simple_email_context)
+        TIE_server.login(sender, password)
+     #   print("Connected to server :-)")
+
+        # Send the actual email
+       # print()
+       # print(f"Sending email to - {receiver}")
+        TIE_server.sendmail(sender, receiver, final_text)
+       # print(f"Email successfully sent to - {receiver}")
+
+    # If there's an error, print it out
+    except Exception as e:
+        print(e)
+
+    # Close the port
+    finally:
+        TIE_server.quit()
 def fill_results_window(sample_id,test_index,result_info_frame,update_btn,sample_info_frame):
     #write the sample info to the screen for verification purposes.
     fill_sample_info(sample_id,sample_info_frame,0)
@@ -160,6 +224,7 @@ def increment_child_value(child_data):
 
 
 def write_sample_db():
+    print("saving sample to db")
     # This is a database reference for the path we write sample info to
     info_ref = db.reference("/sample_info")
     with open("sample.json", "r") as f:
