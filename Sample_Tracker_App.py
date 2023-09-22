@@ -54,25 +54,25 @@ info_ref = db.reference("/sample_info")
 class start_window:
     def __init__(self,master):
         self.frame = tk.Frame(master)
-
         lbl1 = tk.Label(self.frame, text="Select the mode you would like to enter:")
         lbl1.pack(padx = 20, pady = 10)
-        production_btn = tk.Button(self.frame, text = "Production mode", command = self.production_mode)
+        production_btn = tk.Button(self.frame, text = "Production mode", command = lambda:self.production_mode(master))
         production_btn.pack(padx = 50, pady = 10)
 
-        manager_btn = tk.Button(self.frame, text = "Manager mode", command = self.manager_mode)
+        manager_btn = tk.Button(self.frame, text = "Manager mode", command = lambda: self.manager_mode(master))
         manager_btn.pack(padx = 50, pady = 10)
 
         self.frame.pack(padx = 10, pady = 10)
-    def production_mode(self):
-        prod_window = production_window()
-    def manager_mode(self):
-        login_win = login_window()
+    def production_mode(self,master):
+        prod_window = production_window(master)
+    def manager_mode(self,master):
+        login_win = login_window(master)
 
 class login_window:
-    def __init__(self):
+    def __init__(self,master):
         # child window
-        self.login_window = tk.Toplevel()
+        self.login_window = tk.Toplevel(master)
+        st.place_window_center(self.login_window,master,220,200)
         login_label = tk.Label(self.login_window, text="sign in to enter manager mode:")
         login_label.pack(padx = 20, pady = 10)
 
@@ -91,15 +91,15 @@ class login_window:
         password = tk.Entry(self.login_window, textvariable= password_var,show="*")
         password.pack(padx = 20, pady = 10)
 
-        enter_btn = tk.Button(self.login_window, text="Login", command= lambda: self.login(username_var.get(),password_var.get()))
+        enter_btn = tk.Button(self.login_window, text="Login", command= lambda: self.login(username_var.get(),password_var.get(),master))
         enter_btn.pack(padx = 20, pady = 10)
-    def login(self,username,password):
+    def login(self,username,password,master):
         logged_in = False
         try:
             login = auth.sign_in_with_email_and_password(username, password)
             print("Successfully logged in!")
             tk.messagebox.showinfo('Login', 'Successfully logged in')
-            display_manager_window = manager_window()
+            display_manager_window = manager_window(master)
             logged_in = True
         except:
             print("login failed")
@@ -109,21 +109,22 @@ class login_window:
             is_manager = True
 
 class manager_window:
-    def __init__(self):
+    def __init__(self,master):
         self.manager_win = tk.Toplevel()
+        st.place_window_center(self.manager_win,master,500,250)
         button_frame = tk.LabelFrame(self.manager_win, text="Functions:")
         button_frame.grid(row=0, column=0, padx=20, pady=0, sticky="w")
 
         create_btn = tk.Button(button_frame, text="Create New\nSample", command=self.create_new_sample)
         create_btn.pack()
 
-        delete_btn = tk.Button(button_frame, text="Delete Sample", command=self.display_delete_win)
+        delete_btn = tk.Button(button_frame, text="Delete Sample", command=lambda: self.display_delete_win(master))
         delete_btn.pack(padx=20, pady=20)
 
-        print_lbl_btn = tk.Button(button_frame, text="Print Sample\nLabel", command= self.print_label_window)
+        print_lbl_btn = tk.Button(button_frame, text="Print Sample\nLabel", command= lambda:self.print_label_window(master))
         print_lbl_btn.pack(padx=20, pady=10)
 
-        push_result_btn = tk.Button(button_frame, text="Push Result", command=self.output_result)
+        push_result_btn = tk.Button(button_frame, text="Push Result", command=lambda:self.output_result(master))
         push_result_btn.pack(padx=20, pady=10)
 
     def create_new_sample(self):
@@ -205,12 +206,13 @@ class manager_window:
         #    save_btn.grid(row=11, column=0,sticky="ew")
         save_btn.pack(side=RIGHT)
 
-    def display_delete_win(self):
+    def display_delete_win(self,master):
         delete_frame = tk.Frame(self.manager_win)
         delete_frame.grid(row = 1,column = 0)
 
 
         delete_window = Toplevel(self.manager_win)
+        st.place_window_center(delete_window,master,150,70)
 
         delete_lbl = tk.Label(delete_window, text = "Enter a sample ID to delete: ")
         delete_lbl.pack()
@@ -222,9 +224,9 @@ class manager_window:
         delete_btn = tk.Button(delete_window, text = "delete",command = lambda: st.delete_sample(int(id_to_delete.get())))
         delete_btn.pack()
 
-    def print_label_window(self):
+    def print_label_window(self,master):
         print_label_window = Toplevel(self.manager_win)
-
+        st.place_window_center(print_label_window,master,150,70)
 
         print_lbl = tk.Label(print_label_window, text="Enter a sample ID to print: ")
         print_lbl.pack()
@@ -236,13 +238,13 @@ class manager_window:
                                     command=lambda: st.print_label_data(id_to_print.get()))
         print_label_btn.pack()
 
-    def output_result(self):
+    def output_result(self,master):
         info_frame = tk.LabelFrame(self.manager_win, text="sample info QC check:")
         info_frame.grid(row=0, column=2)
 
         # child window
         QC_window = Toplevel(self.manager_win)
-
+        st.place_window_center(QC_window,master,300,70)
 
         QC_label = tk.Label(QC_window, text="For which sample would you like to check the results?")
         QC_label.pack()
@@ -337,8 +339,9 @@ def add_test_list(test, test_list_entry,new_element):
 def output_result():
     pass
 class production_window:
-    def __init__(self):
+    def __init__(self,master):
         self.production_win = tk.Toplevel()
+        st.place_window_center(self.production_win,master,700,250)
        # ex_lbl = tk.Label(self.win,text = "hello world")
        # ex_lbl.pack()
      #   '''
@@ -391,6 +394,7 @@ class production_window:
       #  '''
 
 root = tk.Tk()
+root.eval('tk::PlaceWindow . center')
 window = start_window(root)
 root.mainloop()
 

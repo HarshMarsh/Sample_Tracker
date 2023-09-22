@@ -344,3 +344,18 @@ def save_test_result_db(sample_id,test_index, update_btn):
 
 
     updating = False
+
+
+def place_window_center(child_window,root,width,height):
+
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    # Calculate the position of the child window
+    x = (screen_width - width) // 2
+    y = (screen_height - height) // 2
+
+    # Set the child window's position and size
+    child_window.geometry(f"{width}x{height}+{x}+{y}")
+
+    # Place the toplevel window at the top
+    child_window.wm_transient(root)
