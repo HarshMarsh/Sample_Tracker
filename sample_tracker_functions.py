@@ -31,8 +31,8 @@ receiver = "marshallfgarrett5@gmail.com"
 
 
 ThermalPrinter = adafruit_thermal_printer.get_printer_class(2.69)
-uart = serial.Serial("COM6", baudrate=9600, timeout=3000)
-printer = ThermalPrinter(uart)
+#uart = serial.Serial("COM6", baudrate=9600, timeout=3000)
+#printer = ThermalPrinter(uart)
 
 
 
@@ -359,3 +359,87 @@ def place_window_center(child_window,root,width,height):
 
     # Place the toplevel window at the top
     child_window.wm_transient(root)
+
+
+
+
+
+
+
+
+
+
+
+
+"""
+-add_test_list is used when new sample is being entered and manager is adding the list of tests that should be done to a certain sample
+-This function takes in the array of existing tests, the tkinter entry on the new sample window, and the new string whose contents mark the type of the new test to be added.
+- The tkinter entry from the new sample window is passed in because the new test name is appended to it when it is added so that user knows test was successfully added.
+- This function checks to ensure that one type of test is not added twice
+"""
+def add_test_list(test, test_list_entry,new_element):
+    print(test)
+    if new_element in test:
+        tk.messagebox.showerror('Sample Creation Error', 'Error: This test has already been added to the sample!')
+    else:
+        test.append(new_element)
+        new_element = new_element + ','
+        test_list_entry.insert("end",new_element)
+
+def save_new_sample_db(new_id,sort,contact,name,address,tests,field_frame):
+    New_Sample = Sample(new_id[0]['ID'], sort, contact, name, address, tests)
+    New_Sample.save_to_file()
+    write_sample_db()
+    field_frame.grid_forget()
+
+
+def make_test_obj(tests):
+    # make an array for the object we will create. This will be returned to caller
+    test_objects = []
+    # loop through the input text, and classify which test type it corresponds to
+    for element in tests:
+        # one the type is found, make an object of the correct type
+        if element == 'Type-1':
+            obj = Test_type_one()
+        elif element == "Type-2":
+            obj = Test_type_two()
+        else:
+            obj = Test()
+        # append the created object to the array and return to the caller
+        test_objects.append(obj.test_dict)
+    return test_objects
+
+
+class Sample:
+    def __init__(self, ID, Type_in, customer_email, customer_name, customer_address, ordered_tests):
+        print("Sample created")
+        # Create an arrow of test objects corresponding to the types of test ordered
+        sample_test_objects = make_test_obj(ordered_tests)
+        self.dict = {"id": ID, "kind": Type_in, "name": customer_name, "email": customer_email,
+                     "address": customer_address, "techs": [], "tests": sample_test_objects}
+        self.main_dict = {"id_num": self.dict}
+
+    def save_to_file(self):
+        json_object = json.dumps(self.main_dict, indent=4)
+        # Writing to sample.json
+        with open("sample.json", "w") as outfile:
+            outfile.write(json_object)
+        outfile.close()
+
+
+# make a test classes that can take on different results fields depending on the type of test chosen
+class Test:
+    def __init__(self):
+        print("generic test")
+        test_dict = {"tech_name": "None", "in_time": "None", "out_time": "None"}
+
+    def print_test_data(self):
+        print("empty test")
+
+
+class Test_type_one(Test):
+    test_dict = {"type": 1, "tech_name": "None", "in_time": "None", "out_time": "None", "weight1(g)": 0, "weight2(g)": 0}
+
+class Test_type_two(Test):
+    test_dict = {"type": 2, "tech_name": "None", "in_time": "None", "out_time": "None", "percent(%)": 0}
+
